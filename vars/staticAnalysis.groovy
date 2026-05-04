@@ -2,7 +2,7 @@
 
 def call(boolean abortPipeline = false, String branchName = null) {
     withSonarQubeEnv('SonarQube') {
-        sh 'echo "Ejecución de las pruebas de calidad de código"'
+        sh "${tool('SonarQubeScanner')}/bin/sonar-scanner"
     }
 
     boolean shouldAbort = abortPipeline
@@ -23,14 +23,6 @@ def call(boolean abortPipeline = false, String branchName = null) {
     }
 
     timeout(time: 5, unit: 'MINUTES') {
-        try {
-            waitForQualityGate abortPipeline: shouldAbort
-        } catch (Exception e) {
-            if (shouldAbort) {
-                error("QualityGate fallido o no disponible: ${e.message}")
-            } else {
-                echo "QualityGate no disponible (mock SonarQube): ${e.message}"
-            }
-        }
+        waitForQualityGate abortPipeline: shouldAbort
     }
 }
